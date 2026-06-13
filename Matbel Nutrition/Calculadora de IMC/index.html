@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de IMC Atlético</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0F0F13;
+      --surface:   #1C1C24;
+      --border:    #2E2E3C;
+      --accent:    #B8FF57;
+      --accent-dim:#7DB830;
+      --text:      #E8E8F0;
+      --muted:     #7A7A96;
+      --danger:    #FF5757;
+      --warn:      #FFB457;
+      --ok:        #57DFFF;
+      --radius:    12px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .widget {
+      width: 100%;
+      max-width: 440px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .widget-header {
+      padding: 24px 28px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+    }
+    .header-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-icon svg { display: block; }
+    .header-text h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .header-text p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── Form ── */
+    .form-body { padding: 24px 28px; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 10px 13px;
+      width: 100%;
+      transition: border-color 0.15s;
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    select { cursor: pointer; }
+    select option { background: #1C1C24; }
+
+    .input-unit {
+      position: relative;
+    }
+    .input-unit input {
+      padding-right: 46px;
+    }
+    .input-unit span {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    /* sex toggle */
+    .sex-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .sex-toggle input { display: none; }
+    .sex-toggle label {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      padding: 10px 0;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sex-toggle input:checked + label {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    /* btn */
+    .btn-calc {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-calc:hover { opacity: 0.88; }
+    .btn-calc:active { transform: scale(0.98); }
+
+    /* ── Result panel ── */
+    .result-panel {
+      border-top: 1px solid var(--border);
+      padding: 24px 28px 28px;
+      display: none;
+      animation: fadeUp 0.3s ease;
+    }
+    .result-panel.visible { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-top {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .imc-value {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 56px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.01em;
+    }
+    .imc-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .category-badge {
+      display: inline-block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 5px;
+      margin-bottom: 16px;
+    }
+
+    /* ── Gauge bar ── */
+    .gauge-wrap { margin-bottom: 18px; }
+    .gauge-track {
+      position: relative;
+      height: 10px;
+      border-radius: 99px;
+      background: linear-gradient(to right,
+        #57DFFF 0%,         /* abaixo do peso */
+        #B8FF57 22%,        /* normal */
+        #FFB457 55%,        /* sobrepeso */
+        #FF7A57 72%,        /* ob I */
+        #FF5757 88%,        /* ob II+ */
+        #C42020 100%
+      );
+      overflow: visible;
+    }
+    .gauge-needle {
+      position: absolute;
+      top: 50%;
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border: 2px solid var(--bg);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+    }
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+    }
+    .gauge-labels span {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── Athletic note ── */
+    .athlete-note {
+      background: rgba(184, 255, 87, 0.07);
+      border: 1px solid rgba(184, 255, 87, 0.18);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--text);
+    }
+    .athlete-note strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── Reset ── */
+    .btn-reset {
+      width: 100%;
+      margin-top: 16px;
+      padding: 10px;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Footer ── */
+    .widget-footer {
+      padding: 14px 28px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+    .widget-footer a {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .widget-footer a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+    .widget-footer .brand-name {
+      color: var(--accent);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+<div class="widget">
+
+  <!-- Header -->
+  <div class="widget-header">
+    <div class="header-icon">
+      <img src="Logo.jpg" alt="Logo da calculadora" style="width: 44px; height: 44px; object-fit: cover; border-radius: 10px;" />
+    </div>
+    <div class="header-text">
+      <h1>IMC Atlético</h1>
+      <p>Calculadora com contexto esportivo</p>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-body" id="formSection">
+    <!-- Sexo -->
+    <div class="field-row">
+      <div class="field full">
+        <label>Sexo biológico</label>
+        <div class="sex-toggle">
+          <input type="radio" name="sexo" id="masculino" value="M" checked />
+          <label for="masculino">♂ Masculino</label>
+          <input type="radio" name="sexo" id="feminino" value="F" />
+          <label for="feminino">♀ Feminino</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Idade + Peso -->
+    <div class="field-row">
+      <div class="field">
+        <label>Idade</label>
+        <div class="input-unit">
+          <input type="text" id="idade" placeholder="28" inputmode="numeric" pattern="[0-9]*" maxlength="2" />
+          <span>anos</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Peso</label>
+        <div class="input-unit">
+          <input type="text" id="peso" placeholder="80" inputmode="numeric" pattern="[0-9]*" maxlength="3" />
+          <span>kg</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Altura -->
+    <div class="field-row">
+      <div class="field full">
+        <label>Altura</label>
+        <div class="input-unit">
+          <input type="text" id="altura" placeholder="175" inputmode="numeric" pattern="[0-9]*" maxlength="3" />
+          <span>cm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modalidade -->
+    <div class="field-row">
+      <div class="field full">
+        <label>Modalidade principal</label>
+        <select id="modalidade">
+          <option value="musculacao">Musculação / Bodybuilding</option>
+          <option value="crossfit">CrossFit / Funcional</option>
+          <option value="corrida">Corrida / Ciclismo / Natação</option>
+          <option value="esporte_coletivo">Esporte coletivo (futebol, vôlei…)</option>
+          <option value="artes_marciais">Artes Marciais / Luta</option>
+          <option value="pilates_yoga">Pilates / Yoga</option>
+          <option value="geral">Atividade geral / Academia</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-calc" onclick="calcular()">Calcular IMC</button>
+  </div>
+
+  <!-- Result -->
+  <div class="result-panel" id="resultPanel">
+    <div class="imc-label">Seu IMC</div>
+    <div class="result-top">
+      <div class="imc-value" id="imcValor">—</div>
+    </div>
+    <div class="category-badge" id="categoryBadge">—</div>
+
+    <div class="gauge-wrap">
+      <div class="gauge-track">
+        <div class="gauge-needle" id="gaugeNeedle" style="left: 0%"></div>
+      </div>
+      <div class="gauge-labels">
+        <span>16</span>
+        <span>18.5</span>
+        <span>25</span>
+        <span>30</span>
+        <span>35</span>
+        <span>40</span>
+      </div>
+    </div>
+
+    <div class="athlete-note" id="athleteNote"></div>
+
+    <button class="btn-reset" onclick="resetar()">↩ Calcular novamente</button>
+  </div>
+
+  <!-- Footer -->
+  <div class="widget-footer">
+    <p>Todos os direitos reservados a <a href="https://matbelnutrition.com.br/" target="_blank" rel="noopener noreferrer"><span class="brand-name">Matbel Nutrition</span></a></p>
+    <p>Desenvolvido por <a href="https://github.com/marcelotorres82" target="_blank" rel="noopener noreferrer">Marcelo Torres</a></p>
+  </div>
+</div>
+
+<script>
+  ['idade', 'peso', 'altura'].forEach((fieldId) => {
+    const field = document.getElementById(fieldId);
+    field.addEventListener('input', () => {
+      field.value = field.value.replace(/\D/g, '');
+    });
+  });
+
+  /* ── Faixas de IMC padrão OMS ── */
+  const faixas = [
+    { max: 18.5, label: 'Abaixo do Peso', color: '#57DFFF', gaugePos: 10 },
+    { max: 25,   label: 'Peso Normal',    color: '#B8FF57', gaugePos: 35 },
+    { max: 30,   label: 'Sobrepeso',      color: '#FFB457', gaugePos: 60 },
+    { max: 35,   label: 'Obesidade I',    color: '#FF7A57', gaugePos: 75 },
+    { max: 40,   label: 'Obesidade II',   color: '#FF5757', gaugePos: 87 },
+    { max: 999,  label: 'Obesidade III',  color: '#C42020', gaugePos: 96 },
+  ];
+
+  /* ── Interpolação para posição na barra (IMC 16–40+) ── */
+  function imcToGauge(imc) {
+    const min = 16, max = 42;
+    const pct = Math.min(Math.max((imc - min) / (max - min), 0), 1);
+    return (pct * 92 + 4); // 4%–96% para não colidir com as bordas
+  }
+
+  /* ── Notas contextuais por modalidade ── */
+  const notas = {
+    musculacao: {
+      sobrepeso:  'Praticantes de musculação frequentemente têm IMC elevado por alta massa muscular. Se sua composição corporal é atlética, o sobrepeso indicado pelo IMC pode não refletir risco real. Considere uma avaliação de bioimpedância.',
+      normal:     'IMC dentro da faixa ideal. Atletas de musculação com boa massa magra geralmente se enquadram aqui. Continue monitorando sua composição corporal além do IMC.',
+      abaixo:     'IMC abaixo do esperado. Para atletas de musculação, pode indicar baixo peso útil. Avalie ingestão calórica e proteica com um nutricionista esportivo.',
+    },
+    crossfit: {
+      sobrepeso:  'CrossFitters de alto nível frequentemente têm IMC de sobrepeso devido à alta massa muscular. O IMC não distingue músculo de gordura — avaliação de composição corporal é mais precisa.',
+      normal:     'Faixa ideal. Para CrossFit, manter o IMC nessa faixa geralmente indica bom equilíbrio entre força e resistência.',
+      abaixo:     'IMC abaixo da faixa recomendada. Pode impactar desempenho em movimentos de força. Verifique sua ingestão energética.',
+    },
+    corrida: {
+      sobrepeso:  'Para corredores e ciclistas, o sobrepeso aumenta o impacto nas articulações e pode reduzir performance. Vale avaliar composição corporal com profissional.',
+      normal:     'Faixa ótima para modalidades de endurance. Atletas de corrida/ciclismo costumam performar melhor com IMC entre 20–24.',
+      abaixo:     'IMC baixo é comum em corredores de elite. Porém, abaixo de 18.5 pode indicar risco de lesões por estresse e deficiências nutricionais.',
+    },
+    esporte_coletivo: {
+      sobrepeso:  'Dependendo da posição/função (ex: goleiros, atacantes x zagueiros), IMC de sobrepeso pode ser funcional. Avalie com preparador físico.',
+      normal:     'Faixa ideal para a maioria das posições em esportes coletivos. Boa relação entre agilidade e força.',
+      abaixo:     'IMC abaixo pode comprometer força e contato físico no esporte. Revise seu plano nutricional.',
+    },
+    artes_marciais: {
+      sobrepeso:  'Em artes marciais com categorias de peso, o IMC de sobrepeso pode exigir atenção especial. Para atletas musculosos, pode ser esperado.',
+      normal:     'Faixa equilibrada para artes marciais, combinando agilidade, força e resistência.',
+      abaixo:     'IMC baixo pode ser estratégico para competidores em categorias de peso, mas deve ser monitorado para evitar déficits de performance.',
+    },
+    pilates_yoga: {
+      sobrepeso:  'Para Pilates e Yoga, o excesso de peso pode dificultar alguns movimentos e aumentar esforço articular. Um plano nutricional pode ajudar.',
+      normal:     'Faixa ideal para mobilidade e controle corporal em Pilates/Yoga. Continue com a prática regular.',
+      abaixo:     'IMC abaixo pode indicar baixa massa muscular, o que pode impactar a estabilidade em exercícios de equilíbrio.',
+    },
+    geral: {
+      sobrepeso:  'Pratique sua atividade com regularidade e consulte um nutricionista esportivo para otimizar composição corporal.',
+      normal:     'Ótimo! Seu IMC está na faixa saudável. Mantenha a rotina de exercícios e uma dieta equilibrada.',
+      abaixo:     'IMC abaixo da faixa recomendada. Procure um nutricionista para ajustar sua ingestão calórica e proteica.',
+    },
+  };
+
+  function getNotaTipo(imc) {
+    if (imc < 18.5) return 'abaixo';
+    if (imc < 30)   return 'normal'; // agrupa normal + sobrepeso leve num contexto atlético
+    return 'sobrepeso';
+  }
+
+  function getFaixa(imc) {
+    return faixas.find(f => imc < f.max) || faixas[faixas.length - 1];
+  }
+
+  function calcular() {
+    const sexo      = document.querySelector('input[name="sexo"]:checked').value;
+    const idade     = parseFloat(document.getElementById('idade').value);
+    const peso      = parseFloat(document.getElementById('peso').value);
+    const alturaCm  = parseFloat(document.getElementById('altura').value);
+    const modalidade= document.getElementById('modalidade').value;
+
+    if (!idade || !peso || !alturaCm || idade < 10 || peso < 30 || alturaCm < 100) {
+      alert('Por favor, preencha todos os campos corretamente.');
+      return;
+    }
+
+    const alturaM = alturaCm / 100;
+    const imc = peso / (alturaM * alturaM);
+    const imcRound = Math.round(imc * 10) / 10;
+    const faixa = getFaixa(imc);
+    const gaugePos = imcToGauge(imc);
+    const tipo = getNotaTipo(imc);
+    const nota = notas[modalidade][tipo] || notas.geral[tipo];
+
+    // Ajuste de texto para sexo
+    const sufixo = sexo === 'F' ? 'a' : 'o';
+    const nota_sexo = nota; // futuro: personalizar por sexo
+
+    // Render
+    document.getElementById('imcValor').textContent = imcRound.toFixed(1);
+    document.getElementById('imcValor').style.color = faixa.color;
+
+    const badge = document.getElementById('categoryBadge');
+    badge.textContent = faixa.label;
+    badge.style.background = faixa.color + '22';
+    badge.style.color = faixa.color;
+    badge.style.border = `1px solid ${faixa.color}44`;
+
+    setTimeout(() => {
+      document.getElementById('gaugeNeedle').style.left = gaugePos + '%';
+    }, 50);
+
+    document.getElementById('athleteNote').innerHTML =
+      `<strong>⚡ Contexto atlético:</strong> ${nota_sexo}`;
+
+    document.getElementById('formSection').style.display = 'none';
+    const panel = document.getElementById('resultPanel');
+    panel.classList.add('visible');
+  }
+
+  function resetar() {
+    document.getElementById('formSection').style.display = 'block';
+    const panel = document.getElementById('resultPanel');
+    panel.classList.remove('visible');
+    // reset needle
+    document.getElementById('gaugeNeedle').style.left = '0%';
+  }
+</script>
+</body>
+</html>
