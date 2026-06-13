@@ -98,6 +98,7 @@
     }
 
     input[type="number"],
+    input[type="text"],
     select {
       background: var(--bg);
       border: 1.5px solid var(--border);
@@ -115,12 +116,30 @@
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
     input[type="number"]:focus,
+    input[type="text"]:focus,
     select:focus {
       outline: none;
       border-color: var(--accent);
     }
     select { cursor: pointer; }
     select option { background: #1C1C24; }
+
+    .input-unit {
+      position: relative;
+    }
+    .input-unit input {
+      padding-right: 46px;
+    }
+    .input-unit span {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      pointer-events: none;
+    }
 
     /* sex toggle */
     .sex-toggle {
@@ -146,13 +165,6 @@
     .sex-toggle input:checked + label {
       background: var(--accent);
       color: var(--bg);
-    }
-
-    .unit-hint {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 3px;
-      padding-left: 2px;
     }
 
     /* btn */
@@ -302,6 +314,20 @@
       font-size: 11px;
       color: var(--muted);
       text-align: center;
+      line-height: 1.6;
+    }
+    .widget-footer a {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .widget-footer a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+    .widget-footer .brand-name {
+      color: var(--accent);
+      font-weight: 700;
     }
   </style>
 </head>
@@ -346,13 +372,17 @@
     <div class="field-row">
       <div class="field">
         <label>Idade</label>
-        <input type="number" id="idade" placeholder="28" min="10" max="99" />
-        <span class="unit-hint">anos</span>
+        <div class="input-unit">
+          <input type="text" id="idade" placeholder="28" inputmode="numeric" pattern="[0-9]*" maxlength="2" />
+          <span>anos</span>
+        </div>
       </div>
       <div class="field">
         <label>Peso</label>
-        <input type="number" id="peso" placeholder="80" min="30" max="300" step="0.1" />
-        <span class="unit-hint">kg</span>
+        <div class="input-unit">
+          <input type="text" id="peso" placeholder="80" inputmode="numeric" pattern="[0-9]*" maxlength="3" />
+          <span>kg</span>
+        </div>
       </div>
     </div>
 
@@ -360,8 +390,10 @@
     <div class="field-row">
       <div class="field full">
         <label>Altura</label>
-        <input type="number" id="altura" placeholder="175" min="100" max="250" />
-        <span class="unit-hint">cm</span>
+        <div class="input-unit">
+          <input type="text" id="altura" placeholder="175" inputmode="numeric" pattern="[0-9]*" maxlength="3" />
+          <span>cm</span>
+        </div>
       </div>
     </div>
 
@@ -413,11 +445,19 @@
 
   <!-- Footer -->
   <div class="widget-footer">
-    Calculadora informativa · Consulte um profissional de saúde ou nutrição
+    <p>Todos os direitos reservados a <span class="brand-name">Matbel Nutrition</span></p>
+    <p>Desenvolvido por <a href="https://github.com/marcelotorres" target="_blank" rel="noopener noreferrer">Marcelo Torres</a></p>
   </div>
 </div>
 
 <script>
+  ['idade', 'peso', 'altura'].forEach((fieldId) => {
+    const field = document.getElementById(fieldId);
+    field.addEventListener('input', () => {
+      field.value = field.value.replace(/\D/g, '');
+    });
+  });
+
   /* ── Faixas de IMC padrão OMS ── */
   const faixas = [
     { max: 18.5, label: 'Abaixo do Peso', color: '#57DFFF', gaugePos: 10 },
